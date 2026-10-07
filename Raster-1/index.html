@@ -3,180 +3,90 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <link rel="stylesheet" href="style.css" />
-
-    <title>Document</title>
-
-    <script src="script.js"></script>
+    <title>Raster topográfico</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="index.js" defer></script>
   </head>
 
   <body>
-    <main>
-      <div class="content">
-        <div class="conteiner-labs">
-          <h1>Nuestro raster</h1>
-          <div class="cord-xy">
-            <h3>
-              Cordenadas <span class="cg">X</span> y <span class="cg">Y</span>
-            </h3>
-            <input type="number" name="Cordenadax" id="cx" />
-            <input type="number" name="Cordenadax" id="cy" />
+    <header class="encabezado">
+      <h1>Raster topográfico</h1>
+      <p>Matriz de 10 × 10. Cada celda guarda una elevación Z y se pinta según su posición entre el mínimo y el máximo.</p>
+    </header>
+
+    <main class="pagina">
+      <aside class="panel">
+        <section class="bloque">
+          <h2>Punto</h2>
+
+          <div class="fila">
+            <label for="cx">X</label>
+            <input type="number" id="cx" min="1" max="10" value="1" />
+            <label for="cy">Y</label>
+            <input type="number" id="cy" min="1" ma ="10" value="1" />
           </div>
 
-          <div class="cord-z">
-            <h3 for="color">
-              Cordenada <span class="cg">Z</span> [puede ser negativo o
-              positivo]
-            </h3>
-            <input
-              type="number"
-              name="Cordenadaz"
-              id="cz"
-              placeholder="Valor de z: [-99:46, 99:99]"
-            />
+          <div class="fila">
+            <label for="cz">Z</label>
+            <input type="number" id="cz" step="0.01" placeholder="-99.46 a 99.99" />
           </div>
 
-          <button type="submit">Agregar punto</button>
-          <button>Randomizar todos los puntos</button>
+          <div class="acciones">
+            <button type="button" id="btn-add" class="boton">Guardar punto</button>
+            <button type="button" id="btn-random" class="boton claro">Llenar al azar</button>
+            <button type="button" id="btn-clear" class="boton claro">Vaciar</button>
+          </div>
+          <p class="nota">También puedes hacer clic en una celda para cargar sus valores.</p>
+        </section>
 
-          <h3>Paleta de colores</h3>
-          <div class="palette">
-            <div class="pal-color">
-              <p>rango: []</p>
-            </div>
-            <div class="pal-color">
-              <p>rango: []</p>
-            </div>
-            <div class="pal-color">
-              <p>rango: []</p>
-            </div>
-            <div class="pal-color">
-              <p>rango: []</p>
-            </div>
-            <div class="pal-color">
-              <p>rango: []</p>
-            </div>
-            <div class="pal-color">
-              <p>rango: []</p>
-            </div>
-            <div class="pal-color">
-              <p>rango: []</p>
-            </div>
-            <div class="pal-color">
-              <p>rango: []</p>
-            </div>
-            <div class="pal-color">
-              <p>rango: []</p>
-            </div>
-            <div class="pal-color">
-              <p>rango: []</p>
-            </div>
+        <section class="bloque">
+          <h2>Escala</h2>
+          <div class="paleta" id="palette-container">
+            <div class="pal-color"><p>Sin datos</p></div>
+            <div class="pal-color"><p>Sin datos</p></div>
+            <div class="pal-color"><p>Sin datos</p></div>
+            <div class="pal-color"><p>Sin datos</p></div>
+            <div class="pal-color"><p>Sin datos</p></div>
+            <div class="pal-color"><p>Sin datos</p></div>
+            <div class="pal-color"><p>Sin datos</p></div>
+            <div class="pal-color"><p>Sin datos</p></div>
+            <div class="pal-color"><p>Sin datos</p></div>
+            <div class="pal-color"><p>Sin datos</p></div>
+          </div>
+          <div class="extremos">
+            <span>bajo <strong id="stat-zmin">-</strong></span>
+            <span>alto <strong id="stat-zmax">-</strong></span>
+          </div>
+        </section>
+
+        <section class="bloque">
+          <h2>Cómo se pinta</h2>
+          <p class="nota">
+            Se toman el Z más bajo y el más alto de toda la matriz y se reparten en
+            10 tramos iguales, de azul a rojo pasando por verdes y amarillo. Si
+            cambia alguno de los extremos, todas las celdas se vuelven a calcular.
+          </p>
+        </section>
+      </aside>
+
+      <section class="hoja">
+        <div class="mapa">
+          <div class="eje eje-y">
+            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+            <span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+          </div>
+
+          <div class="cuadricula" id="raster-grid"></div>
+
+          <div class="vacio"></div>
+          <div class="eje eje-x">
+            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+            <span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
           </div>
         </div>
-        <div class="conteiner-coloors">
-          <div class="color" id="obj1"></div>
-          <div class="color" id="obj2"></div>
-          <div class="color" id="obj3"></div>
-          <div class="color" id="obj4"></div>
-          <div class="color" id="obj5"></div>
-          <div class="color" id="obj6"></div>
-          <div class="color" id="obj7"></div>
-          <div class="color" id="obj8"></div>
-          <div class="color" id="obj9"></div>
-          <div class="color" id="obj10"></div>
-          <div class="color" id="obj11"></div>
-          <div class="color" id="obj12"></div>
-          <div class="color" id="obj13"></div>
-          <div class="color" id="obj14"></div>
-          <div class="color" id="obj15"></div>
-          <div class="color" id="obj16"></div>
-          <div class="color" id="obj17"></div>
-          <div class="color" id="obj18"></div>
-          <div class="color" id="obj19"></div>
-          <div class="color" id="obj20"></div>
-          <div class="color" id="obj21"></div>
-          <div class="color" id="obj22"></div>
-          <div class="color" id="obj23"></div>
-          <div class="color" id="obj24"></div>
-          <div class="color" id="obj25"></div>
-          <div class="color" id="obj26"></div>
-          <div class="color" id="obj27"></div>
-          <div class="color" id="obj28"></div>
-          <div class="color" id="obj29"></div>
-          <div class="color" id="obj30"></div>
-          <div class="color" id="obj31"></div>
-          <div class="color" id="obj32"></div>
-          <div class="color" id="obj33"></div>
-          <div class="color" id="obj34"></div>
-          <div class="color" id="obj35"></div>
-          <div class="color" id="obj36"></div>
-          <div class="color" id="obj37"></div>
-          <div class="color" id="obj38"></div>
-          <div class="color" id="obj39"></div>
-          <div class="color" id="obj40"></div>
-          <div class="color" id="obj41"></div>
-          <div class="color" id="obj42"></div>
-          <div class="color" id="obj43"></div>
-          <div class="color" id="obj44"></div>
-          <div class="color" id="obj45"></div>
-          <div class="color" id="obj46"></div>
-          <div class="color" id="obj47"></div>
-          <div class="color" id="obj48"></div>
-          <div class="color" id="obj49"></div>
-          <div class="color" id="obj50"></div>
-          <div class="color" id="obj51"></div>
-          <div class="color" id="obj52"></div>
-          <div class="color" id="obj53"></div>
-          <div class="color" id="obj54"></div>
-          <div class="color" id="obj55"></div>
-          <div class="color" id="obj56"></div>
-          <div class="color" id="obj57"></div>
-          <div class="color" id="obj58"></div>
-          <div class="color" id="obj59"></div>
-          <div class="color" id="obj60"></div>
-          <div class="color" id="obj61"></div>
-          <div class="color" id="obj62"></div>
-          <div class="color" id="obj63"></div>
-          <div class="color" id="obj64"></div>
-          <div class="color" id="obj65"></div>
-          <div class="color" id="obj66"></div>
-          <div class="color" id="obj67"></div>
-          <div class="color" id="obj68"></div>
-          <div class="color" id="obj69"></div>
-          <div class="color" id="obj70"></div>
-          <div class="color" id="obj71"></div>
-          <div class="color" id="obj72"></div>
-          <div class="color" id="obj73"></div>
-          <div class="color" id="obj74"></div>
-          <div class="color" id="obj75"></div>
-          <div class="color" id="obj76"></div>
-          <div class="color" id="obj77"></div>
-          <div class="color" id="obj78"></div>
-          <div class="color" id="obj79"></div>
-          <div class="color" id="obj80"></div>
-          <div class="color" id="obj81"></div>
-          <div class="color" id="obj82"></div>
-          <div class="color" id="obj83"></div>
-          <div class="color" id="obj84"></div>
-          <div class="color" id="obj85"></div>
-          <div class="color" id="obj86"></div>
-          <div class="color" id="obj87"></div>
-          <div class="color" id="obj88"></div>
-          <div class="color" id="obj89"></div>
-          <div class="color" id="obj90"></div>
-          <div class="color" id="obj91"></div>
-          <div class="color" id="obj92"></div>
-          <div class="color" id="obj93"></div>
-          <div class="color" id="obj94"></div>
-          <div class="color" id="obj95"></div>
-          <div class="color" id="obj96"></div>
-          <div class="color" id="obj97"></div>
-          <div class="color" id="obj98"></div>
-          <div class="color" id="obj99"></div>
-          <div class="color" id="obj100"></div>
-        </div>
-      </div>
+
+        <p class="lectura" id="lectura">Pasa el cursor sobre una celda.</p>
+      </section>
     </main>
   </body>
 </html>
