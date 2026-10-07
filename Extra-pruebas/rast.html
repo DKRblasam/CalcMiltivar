@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Generador de Raster 10x10</title>
+  <style>
+    :root {
+      --bg-color: #1a1a2e;
+      --card-bg: #24243a;
+      --text-color: #f1f1f1;
+      --accent-color: #ff3366;
+      --border-color: #444460;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      align-items: center;
+    }
+
+    .container {
+      display: flex;
+      gap: 30px;
+      max-width: 1000px;
+      width: 100%;
+      background-color: var(--card-bg);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .panel-controls {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .panel-raster {
+      flex: 1.2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h2 {
+      margin: 0 0 15px 0;
+      color: #ffccff;
+      text-transform: uppercase;
+      font-size: 1.2rem;
+      letter-spacing: 1px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    label {
+      font-size: 0.8rem;
+      color: #b0b0cc;
+      font-weight: bold;
+    }
+
+    input[type="number"] {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background-color: #101020;
+      color: #fff;
+      font-size: 1rem;
+    }
+
+    .row-inputs {
+      display: flex;
+      gap: 10px;
+    }
+
+    .row-inputs > div {
+      flex: 1;
+    }
+
+    button {
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background-color: var(--accent-color);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+    }
+
+    button:hover {
+      background-color: #e62e5c;
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background-color: #444460;
+    }
+
+    .btn-secondary:hover {
+      background-color: #555575;
+    }
+
+    #grid-raster {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      grid-template-rows: repeat(10, 1fr);
+      gap: 3px;
+      width: 380px;
+      height: 380px;
+      background-color: #0c0c14;
+      padding: 5px;
+      border-radius: 10px;
+      border: 2px solid var(--border-color);
+    }
+
+    .cell {
+      background-color: #33334d;
+      border-radius: 3px;
+      transition: background-color 0.3s ease;
+    }
+
+    .color-result-box {
+      background: #101020;
+      padding: 15px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .color-preview {
+      width: 50px;
+      height: 50px;
+      border-radius: 8px;
+      border: 3px solid #fff;
+      background-color: #ccc;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .color-info {
+      flex: 1;
+    }
+
+    .color-info span {
+      display: block;
+      font-size: 0.85rem;
+    }
+
+    .color-info .color-title {
+      font-weight: bold;
+      color: #ffccff;
+      margin-bottom: 3px;
+    }
+
+    .color-info .color-value {
+      color: #fff;
+      font-family: monospace;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="panel-controls">
+      <h2>Controles</h2>
+
+      <div class="row-inputs">
+        <div class="input-group">
+          <label for="posX">Posición X (Col: 0-9):</label>
+          <input type="number" id="posX" min="0" max="9" placeholder="0">
+        </div>
+        <div class="input-group">
+          <label for="posY">Posición Y (Fila: 0-9):</label>
+          <input type="number" id="posY" min="0" max="9" placeholder="0">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label for="valZ">Valor Z (Intensidad):</label>
+        <input type="number" id="valZ" step="any" placeholder="Ej. 100">
+      </div>
+
+      <button onclick="aplicarPunto()">Aplicar y Marcar Color</button>
+      <button class="btn-secondary" onclick="randomizarTodo()">Randomizar Todo</button>
+
+      <div class="color-result-box">
+        <div id="color-preview" class="color-preview"></div>
+        <div class="color-info">
+          <span class="color-title">Color de casilla (X,Y)</span>
+          <span id="color-hex" class="color-value">Esperando...</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="panel-raster">
+      <h2>Raster 10x10</h2>
+      <div id="grid-raster"></div>
+    </div>
+  </div>
+
+  <script>
+    const gridSize = 10;
+    let matriz = Array(gridSize).fill(null).map(() => Array(gridSize).fill(0));
+    const gridContainer = document.getElementById('grid-raster');
+    
+    function crearGrid() {
+      gridContainer.innerHTML = '';
+      for (let r = 0; r < gridSize; r++) {
+        for (let c = 0; c < gridSize; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.id = `cell-${r}-${c}`;
+          gridContainer.appendChild(cell);
+        }
+      }
+    }
+
+    function obtenerColor(valor, min, max) {
+      if (min === max) return 'hsl(220, 70%, 50%)';
+      const porcentaje = (valor - min) / (max - min);
+      const hue = (1 - porcentaje) * 240;
+      return `hsl(${hue}, 80%, 50%)`;
+    }
+
+    function actualizarVisualizacion() {
+      const valores = matriz.flat();
+      const min = Math.min(...valores);
+      const max = Math.max(...valores);
+
+      for (let r = 0; r < gridSize; r++) {
+        for (let c = 0; c < gridSize; c++) {
+          const val = matriz[r][c];
+          const cell = document.getElementById(`cell-${r}-${c}`);
+          cell.style.backgroundColor = obtenerColor(val, min, max);
+        }
+      }
+    }
+
+    function hslToHex(hsl) {
+      const tempElement = document.createElement('div');
+      tempElement.style.color = hsl;
+      document.body.appendChild(tempElement);
+      const rgb = window.getComputedStyle(tempElement).color;
+      document.body.removeChild(tempElement);
+
+      const rgbValues = rgb.match(/\d+/g);
+      const r = parseInt(rgbValues[0]);
+      const g = parseInt(rgbValues[1]);
+      const b = parseInt(rgbValues[2]);
+      return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    }
+
+    function aplicarPunto() {
+      const x = parseInt(document.getElementById('posX').value);
+      const y = parseInt(document.getElementById('posY').value);
+      const z = parseFloat(document.getElementById('valZ').value);
+
+      if (isNaN(x) || isNaN(y) || isNaN(z) || x < 0 || x > 9 || y < 0 || y > 9) {
+        alert("Coordenadas inválidas (0-9) o falta valor Z.");
+        return;
+      }
+
+      matriz[y][x] = z; 
+      actualizarVisualizacion();
+
+      const cell = document.getElementById(`cell-${y}-${x}`);
+      const colorCalculadoRaw = cell.style.backgroundColor;
+      const colorHex = hslToHex(colorCalculadoRaw);
+
+      document.getElementById('color-preview').style.backgroundColor = colorCalculadoRaw;
+      document.getElementById('color-hex').innerText = `Valor Z: ${z.toFixed(1)} -> ${colorHex}`;
+      
+      cell.style.boxShadow = "0 0 15px white";
+      setTimeout(() => cell.style.boxShadow = "none", 500);
+    }
+
+    function randomizarTodo() {
+      for (let r = 0; r < gridSize; r++) {
+        for (let c = 0; c < gridSize; c++) {
+          matriz[r][c] = parseFloat((Math.random() * 200 - 100).toFixed(1));
+        }
+      }
+      actualizarVisualizacion();
+      document.getElementById('color-preview').style.backgroundColor = '#ccc';
+      document.getElementById('color-hex').innerText = 'Esperando...';
+    }
+
+    crearGrid();
+    randomizarTodo();
+  </script>
+</body>
+</html>
