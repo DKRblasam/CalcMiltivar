@@ -1,186 +1,4 @@
-const colores_z = [
-  "#0000ff",
-  "#2244ff",
-  "#2288ff",
-  "#22ccff",
-  "#22cc88",
-  "#22cc44",
-  "#88cc22",
-  "#cccc22",
-  "#ff8822",
-  "#ff0000",
-];
-
-// Aquí se guarda la información de las 100 celdas
-const coordenadas = new Array(100);
-
-const colores = document.querySelectorAll(".color");
-
-const inputX = document.querySelector("#cx");
-const inputY = document.querySelector("#cy");
-const inputZ = document.querySelector("#cz");
-
-const botonAgregar = document.querySelector("#btn-add");
-const botonRandomizar = document.querySelector("#btn-random");
-
-
-// --------------------------------------------------
-// FUNCIONES
-// --------------------------------------------------
-
-function obtenerIndice(x, y) {
-  return y * 10 + x;
-}
-
-
-function obtenerColorPorZ(z) {
-  const zMin = -99;
-  const zMax = 99;
-
-  // Limitamos Z
-  z = Math.max(zMin, Math.min(zMax, z));
-
-  // Convertimos -99...99 a 0...9
-  const indice = Math.floor(
-    ((z - zMin) / (zMax - zMin)) * colores_z.length
-  );
-
-  return colores_z[
-    Math.min(indice, colores_z.length - 1)
-  ];
-}
-
-
-// --------------------------------------------------
-// AGREGAR UN SOLO PUNTO
-// --------------------------------------------------
-
-botonAgregar.addEventListener("click", () => {
-
-  const x = Number(inputX.value);
-  const y = Number(inputY.value);
-  const z = Number(inputZ.value);
-
-
-  // -------------------------
-  // Validaciones
-  // -------------------------
-
-  if (!Number.isInteger(x) || x < 0 || x > 9) {
-    console.log("X debe ser un entero entre 0 y 9");
-    return;
-  }
-
-  if (!Number.isInteger(y) || y < 0 || y > 9) {
-    console.log("Y debe ser un entero entre 0 y 9");
-    return;
-  }
-
-  if (!Number.isFinite(z) || z < -99 || z > 99) {
-    console.log("Z debe estar entre -99 y 99");
-    return;
-  }
-
-
-  // -------------------------
-  // Buscar la celda
-  // -------------------------
-
-  const indice = obtenerIndice(x, y);
-
-  const celda = colores[indice];
-
-  if (!celda) {
-    console.log("La celda no existe");
-    return;
-  }
-
-
-  // -------------------------
-  // Obtener color
-  // -------------------------
-
-  const color = obtenerColorPorZ(z);
-
-
-  // -------------------------
-  // Cambiar SOLO esa celda
-  // -------------------------
-
-  celda.style.backgroundColor = color;
-
-
-  // -------------------------
-  // Guardar información
-  // -------------------------
-
-  coordenadas[indice] = {
-    x: x,
-    y: y,
-    z: z,
-    color: color
-  };
-
-
-  console.log("Punto agregado:", coordenadas[indice]);
-});
-
-
-// --------------------------------------------------
-// RANDOMIZAR LAS 100 CELDAS
-// --------------------------------------------------
-
-botonRandomizar.addEventListener("click", () => {
-
-  colores.forEach((celda, indice) => {
-
-    // -------------------------
-    // Obtener X e Y
-    // -------------------------
-
-    const x = indice % 10;
-
-    const y = Math.floor(indice / 10);
-
-
-    // -------------------------
-    // Generar Z aleatorio
-    // -------------------------
-
-    const z = Math.floor(Math.random() * 199) - 99;
-
-
-    // -------------------------
-    // Obtener color
-    // -------------------------
-
-    const color = obtenerColorPorZ(z);
-
-
-    // -------------------------
-    // Cambiar celda
-    // -------------------------
-
-    celda.style.backgroundColor = color;
-
-
-    // -------------------------
-    // Guardar información
-    // -------------------------
-
-    coordenadas[indice] = {
-      x: x,
-      y: y,
-      z: z,
-      color: color
-    };
-
-  });
-
-
-  console.log("Raster completo:");
-  console.table(coordenadas);
-});const paleta = [
+const paleta = [
   "#0000ff", "#2244ff", "#2288ff", "#22ccff", "#22cc88",
   "#22cc44", "#88cc22", "#cccc22", "#ff8822", "#ff0000",
 ];
@@ -215,49 +33,43 @@ function indiceDe(x, y) {
   return (y - 1) * TAM + (x - 1);
 }
 
-function limitesGlobales() {
-  let min = Infinity;
-  let max = -Infinity;
-  for (const p of puntos) {
-    if (!p) continue;
-    if (p.z < min) min = p.z;
-    if (p.z > max) max = p.z;
-  }
-  return min === Infinity ? null : { min, max };
-}
-
-function colorPara(z, min, max) {
-  if (max === min) return paleta[0];
-  const i = Math.floor(((z - min) / (max - min)) * paleta.length);
+function colorPara(z) {
+  // Aseguramos que z se mantenga dentro del rango por cualquier problema de redondeo
+  const zAjustado = Math.max(Z_LIMITE_MIN, Math.min(z, Z_LIMITE_MAX));
+  
+  // Calculamos en qué porcentaje del rango total cae el valor de z
+  const porcentaje = (zAjustado - Z_LIMITE_MIN) / (Z_LIMITE_MAX - Z_LIMITE_MIN);
+  
+  // Multiplicamos por la cantidad de colores para obtener el índice
+  const i = Math.floor(porcentaje * paleta.length);
   return paleta[Math.min(i, paleta.length - 1)];
 }
 
-function actualizarLeyenda(lim) {
+function actualizarLeyenda() {
+  const paso = (Z_LIMITE_MAX - Z_LIMITE_MIN) / paleta.length;
+  
   rangos.forEach((el, i) => {
     el.style.backgroundColor = paleta[i];
     const texto = el.querySelector("p");
-    if (!lim) {
-      texto.textContent = "Sin datos";
-      return;
-    }
-    const paso = (lim.max - lim.min) / paleta.length;
-    const desde = lim.min + paso * i;
-    const hasta = i === paleta.length - 1 ? lim.max : desde + paso;
+    
+    const desde = Z_LIMITE_MIN + paso * i;
+    const hasta = i === paleta.length - 1 ? Z_LIMITE_MAX : desde + paso;
+    
     texto.textContent = `${desde.toFixed(2)} a ${hasta.toFixed(2)}`;
   });
 }
 
-// El min/max global cambia con cada punto, así que se repinta todo
 function renderizar() {
-  const lim = limitesGlobales();
-
+  // Aplicamos el color usando los rangos fijos para cada celda que tenga valor
   puntos.forEach((p, i) => {
-    celdas[i].style.backgroundColor = p ? colorPara(p.z, lim.min, lim.max) : "";
+    celdas[i].style.backgroundColor = p ? colorPara(p.z) : "";
   });
 
-  statMin.textContent = lim ? lim.min.toFixed(2) : "-";
-  statMax.textContent = lim ? lim.max.toFixed(2) : "-";
-  actualizarLeyenda(lim);
+  // Mostramos los límites estáticos en la interfaz
+  statMin.textContent = Z_LIMITE_MIN.toFixed(2);
+  statMax.textContent = Z_LIMITE_MAX.toFixed(2);
+  
+  actualizarLeyenda();
 }
 
 function describir(i) {
