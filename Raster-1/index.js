@@ -46,8 +46,9 @@ function colorPara(z) {
 }
 
 function actualizarLeyenda() {
-  const paso = (Z_LIMITE_MAX - Z_LIMITE_MIN) / paleta.length;
-  
+  // 199.45 / 10 = 19.945 por color
+  const paso = 19.945;
+
   rangos.forEach((el, i) => {
     el.style.backgroundColor = paleta[i];
     const texto = el.querySelector("p");
